@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                       String    @id @default(cuid())
+  email                    String    @unique
+  passwordHash             String
+  firstName                String?
+  lastName                 String?
+  imageUrl                 String?
+  role                     UserRole  @default(USER)
+  isActive                 Boolean   @default(true)
+  lastLogin                DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  balance                  Float     @default(0.0)
+  emailVerificationExpires DateTime?
+  emailVerificationToken   String?   @unique
+  isEmailVerified          Boolean   @default(false)
+  resetPasswordExpires     DateTime?
+  resetPasswordToken       String?   @unique
+  isTwoFactorEnabled       Boolean   @default(false)
+  twoFactorMethod          String?
+  twoFactorSecret          String?
+  devices                  Device[]
+  invoices                 Invoice[]
+  orders                   Order[]
+  deposits                 Deposit[]
+
+  @@map("users")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  userId       String
+  orderType    OrderType
+  status       OrderStatus @default(PENDING)
+  deviceModel  String
+  imei         String?
+  price        Float
+  dhruOrderId  String?
+  dhruResponse Json?
+  serviceData  Json?
+  publicMessage String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  completedAt  DateTime?
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}
+
+model Device {
+  id              String   @id @default(cuid())
+  userId          String
+  imei            String   @unique
+  model           String
+  brand           String
+  status          String?
+  lastChecked     DateTime @default(now())
+  iCloudStatus    String?
+  samsungKGStatus String?
+  miCloudStatus   String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("devices")
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  userId      String
+  amount      Float
+  type        InvoiceType
+  status      InvoiceStatus @default(PENDING)
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model DhruApiConfig {
+  id                 String           @id @default(cuid())
+  name               String           @unique
+  apiUrl             String
+  username           String
+  apiKey             String
+  isActive           Boolean          @default(true)
+  isDefault          Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  imeiServicesData   Json?
+  fileServicesData   Json?
+  serverServicesData Json?
+  remoteServicesData Json?
+  servicesSyncedAt   DateTime?
+  syncLogs           ServiceSyncLog[]
+
+  @@unique([apiUrl, username])
+  @@map("dhru_api_configs")
+}
+
+model ServiceSyncLog {
+  id          String        @id @default(cuid())
+  apiConfigId String
+  success     Boolean
+  syncedCount Int           @default(0)
+  errorCount  Int           @default(0)
+  message     String?
+  createdAt   DateTime      @default(now())
+  apiConfig   DhruApiConfig @relation(fields: [apiConfigId], references: [id], onDelete: Cascade)
+
+  @@map("service_sync_logs")
+}
+
+model SiteSettings {
+  id           String   @id @default(cuid())
+  siteName     String   @default("GSMFlow")
+  logoUrl      String?
+  defaultTheme String?  @default("light")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  description  String?  @default("Professional Unlocking Services")
+
+  @@map("site_settings")
+}
+
+model PageAssets {
+  id                String   @id @default(cuid())
+  loginPageImage    String?
+  registerPageImage String?
+  resetPageImage    String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("page_assets")
+}
+
+enum OrderType {
+  FRP_UNLOCK
+  ICLOUD_CHECK
+  SAMSUNG_KG_CHECK
+  SAMSUNG_INFO_CHECK
+  MICLOUD_CHECK
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum InvoiceType {
+  FUND_ADDITION
+  SERVICE_PAYMENT
+  REFUND
+}
+
+enum InvoiceStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assets")
+}
+
+model PaymentGateway {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  apiKey    String?
+  secretKey String?
+  isActive  Boolean  @default(true)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payment_gateways")
+}
+
+model Deposit {
+  id              String     @id @default(cuid())
+  userId          String
+  amount          Float
+  currency        String     @default("usd")
+  paymentGateway  String
+  paymentId       String?    // NOWPayments payment ID or similar
+  status          String     @default("pending")
+  description     String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("deposits")
+}
