@@ -219,8 +219,8 @@ export const updateUser = async (req, res) => {
     if (lastName !== undefined) data.lastName = lastName
     if (email !== undefined) data.email = email
     if (role !== undefined) data.role = role
-    if (isActive !== undefined) data.isActive = !!isActive
-    if (isEmailVerified !== undefined) data.isEmailVerified = !!isEmailVerified
+    if (isActive !== undefined) data.isActive = Boolean(isActive)
+    if (isEmailVerified !== undefined) data.isEmailVerified = Boolean(isEmailVerified)
     const user = await prisma.user.update({ where: { id }, data })
     res.json(user)
   } catch (e) {

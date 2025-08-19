@@ -334,7 +334,7 @@ class DhruAdminService {
             deliveryTime: s.TIME || '',
             minQuantity: s.MINQNT ? parseInt(s.MINQNT) : null,
             maxQuantity: s.MAXQNT ? parseInt(s.MAXQNT) : null,
-            supportsCustomFields: !!(s.CUSTOM && s.CUSTOM.allow === '1'),
+            supportsCustomFields: Boolean(s.CUSTOM && s.CUSTOM.allow === '1'),
             customFields: s.CUSTOM || null,
             requires: this.extractRequirements(s),
             isActive: true,
