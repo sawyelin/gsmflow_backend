@@ -1,11 +1,11 @@
-import nodemailer from 'nodemailer';
-import { config } from '../config/env.js';
+import nodemailer from 'nodemailer'
+import { config } from '../config/env.js'
 
 // Create a transporter object using the default SMTP transport
 const createTransporter = () => {
   // Use SMTP if EMAIL_HOST is configured, otherwise use console transport
   if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-    console.log('Using SMTP transport for email sending');
+    console.log('Using SMTP transport for email sending')
     return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: parseInt(process.env.EMAIL_PORT) || 587,
@@ -14,31 +14,31 @@ const createTransporter = () => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
       }
-    });
+    })
   }
 
   // In development or when SMTP not configured, use console transport (log emails to console)
-  console.log('Using console transport for email sending (DEV MODE)');
+  console.log('Using console transport for email sending (DEV MODE)')
   return {
     sendMail: async (mailOptions) => {
-      console.log('EMAIL SEND (DEV MODE):', mailOptions);
-      console.log('\n=== EMAIL VERIFICATION INSTRUCTIONS ===');
-      console.log('Since SMTP is not configured, please manually verify the user by:');
-      console.log('1. Copy this verification URL:', mailOptions.text.match(/http[s]?:\/\/[^\s]+/)[0]);
-      console.log('2. Open it in your browser to verify the email');
-      console.log('=========================================\n');
-      return { messageId: 'dev-mode-message-id' };
+      console.log('EMAIL SEND (DEV MODE):', mailOptions)
+      console.log('\n=== EMAIL VERIFICATION INSTRUCTIONS ===')
+      console.log('Since SMTP is not configured, please manually verify the user by:')
+      console.log('1. Copy this verification URL:', mailOptions.text.match(/http[s]?:\/\/[^\s]+/)[0])
+      console.log('2. Open it in your browser to verify the email')
+      console.log('=========================================\n')
+      return { messageId: 'dev-mode-message-id' }
     }
-  };
-};
+  }
+}
 
-const transporter = createTransporter();
+const transporter = createTransporter()
 
 // Send verification email
 export const sendVerificationEmail = async (email, token) => {
-  const backendBase = process.env.BACKEND_BASE_URL || 'http://localhost:3000';
-  const verificationUrl = `${backendBase}/api/auth/verify-email?token=${token}`;
-  
+  const backendBase = process.env.BACKEND_BASE_URL || 'http://localhost:3000'
+  const verificationUrl = `${backendBase}/api/auth/verify-email?token=${token}`
+
   const mailOptions = {
     from: process.env.EMAIL_FROM || 'noreply@gsmflow.com',
     to: email,
@@ -76,22 +76,22 @@ export const sendVerificationEmail = async (email, token) => {
         </div>
       </div>
     `
-  };
-  
-  return transporter.sendMail(mailOptions);
-};
+  }
+
+  return transporter.sendMail(mailOptions)
+}
 
 // Send password reset email
 export const sendPasswordResetEmail = async (email, token) => {
-  const frontendUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:5173';
-  const resetLink = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`;
-  
+  const frontendUrl = process.env.FRONTEND_BASE_URL || 'http://localhost:5173'
+  const resetLink = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`
+
   // In production, send to the actual user's email
   // In development, send to TEST_EMAIL if it exists, otherwise to the user's email
-  const recipientEmail = process.env.NODE_ENV === 'production' 
-    ? email 
-    : (process.env.TEST_EMAIL || email);
-  
+  const recipientEmail = process.env.NODE_ENV === 'production'
+    ? email
+    : (process.env.TEST_EMAIL || email)
+
   const mailOptions = {
     from: process.env.EMAIL_FROM || 'noreply@gsmflow.com',
     to: recipientEmail,
@@ -131,7 +131,7 @@ export const sendPasswordResetEmail = async (email, token) => {
         </div>
       </div>
     `
-  };
-  
-  return transporter.sendMail(mailOptions);
-};
+  }
+
+  return transporter.sendMail(mailOptions)
+}

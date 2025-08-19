@@ -1,13 +1,13 @@
-import crypto from 'crypto';
+import crypto from 'crypto'
 
 class EncryptionService {
-  constructor() {
+  constructor () {
     // Use the JWT_SECRET as the encryption key since it's already available in the environment
-    this.algorithm = 'aes-256-cbc';
+    this.algorithm = 'aes-256-cbc'
     // Ensure key is exactly 32 bytes for aes-256-cbc
-    this.secretKey = crypto.createHash('sha256').update(process.env.JWT_SECRET || 'fallback_encryption_key_change_me').digest();
+    this.secretKey = crypto.createHash('sha256').update(process.env.JWT_SECRET || 'fallback_encryption_key_change_me').digest()
     // IV should be 16 bytes for aes-256-cbc
-    this.ivLength = 16;
+    this.ivLength = 16
   }
 
   /**
@@ -15,18 +15,18 @@ class EncryptionService {
    * @param {string} text - Text to encrypt
    * @returns {string} - Encrypted text in format 'iv:encryptedData'
    */
-  encrypt(text) {
-    if (!text) return null;
-    
+  encrypt (text) {
+    if (!text) return null
+
     try {
-      const iv = crypto.randomBytes(this.ivLength);
-      const cipher = crypto.createCipheriv(this.algorithm, this.secretKey, iv);
-      let encrypted = cipher.update(text, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      return `${iv.toString('hex')}:${encrypted}`;
+      const iv = crypto.randomBytes(this.ivLength)
+      const cipher = crypto.createCipheriv(this.algorithm, this.secretKey, iv)
+      let encrypted = cipher.update(text, 'utf8', 'hex')
+      encrypted += cipher.final('hex')
+      return `${iv.toString('hex')}:${encrypted}`
     } catch (error) {
-      console.error('Encryption error:', error);
-      throw new Error('Failed to encrypt data');
+      console.error('Encryption error:', error)
+      throw new Error('Failed to encrypt data')
     }
   }
 
@@ -35,29 +35,29 @@ class EncryptionService {
    * @param {string} encryptedText - Text to decrypt in format 'iv:encryptedData'
    * @returns {string} - Decrypted text
    */
-  decrypt(encryptedText) {
-    if (!encryptedText) return null;
-    
+  decrypt (encryptedText) {
+    if (!encryptedText) return null
+
     // Check if the text is already encrypted (contains iv:encryptedData format)
-    const parts = encryptedText.split(':');
+    const parts = encryptedText.split(':')
     if (parts.length !== 2) {
       // If not encrypted, return as is
-      return encryptedText;
+      return encryptedText
     }
-    
+
     try {
-      const iv = Buffer.from(parts[0], 'hex');
-      const encryptedData = parts[1];
-      
-      const decipher = crypto.createDecipheriv(this.algorithm, this.secretKey, iv);
-      let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-      decrypted += decipher.final('utf8');
-      
-      return decrypted;
+      const iv = Buffer.from(parts[0], 'hex')
+      const encryptedData = parts[1]
+
+      const decipher = crypto.createDecipheriv(this.algorithm, this.secretKey, iv)
+      let decrypted = decipher.update(encryptedData, 'hex', 'utf8')
+      decrypted += decipher.final('utf8')
+
+      return decrypted
     } catch (error) {
-      console.error('Decryption error:', error);
+      console.error('Decryption error:', error)
       // If decryption fails, return the original text
-      return encryptedText;
+      return encryptedText
     }
   }
 
@@ -66,16 +66,16 @@ class EncryptionService {
    * @param {string} text - Text to hash
    * @returns {string} - Hashed text
    */
-  hash(text) {
-    if (!text) return null;
-    
+  hash (text) {
+    if (!text) return null
+
     try {
-      return crypto.createHash('sha256').update(text).digest('hex');
+      return crypto.createHash('sha256').update(text).digest('hex')
     } catch (error) {
-      console.error('Hashing error:', error);
-      throw new Error('Failed to hash data');
+      console.error('Hashing error:', error)
+      throw new Error('Failed to hash data')
     }
   }
 }
 
-export default EncryptionService;
+export default EncryptionService
