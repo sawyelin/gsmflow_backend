@@ -1,8 +1,8 @@
-import { prisma } from '../lib/prisma.js';
-import DepositService from '../services/deposit.service.js';
-import NOWPaymentsService from '../services/nowpayments.service.js';
+import { prisma } from '../lib/prisma.js'
+import DepositService from '../services/deposit.service.js'
+import NOWPaymentsService from '../services/nowpayments.service.js'
 
-const depositService = new DepositService();
+const depositService = new DepositService()
 
 /**
  * Create a new deposit request
@@ -11,32 +11,32 @@ const depositService = new DepositService();
  */
 export const createDeposit = async (req, res) => {
   try {
-    const { amount, paymentGateway, currency, description } = req.body;
-    
+    const { amount, paymentGateway, currency, description } = req.body
+
     // Validate input
     if (!amount || !paymentGateway) {
-      return res.status(400).json({ error: 'Amount and paymentGateway are required' });
+      return res.status(400).json({ error: 'Amount and paymentGateway are required' })
     }
-    
+
     if (typeof amount !== 'number' || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid amount' });
+      return res.status(400).json({ error: 'Invalid amount' })
     }
-    
+
     // Create deposit
     const result = await depositService.createDeposit(
-      req.user.id, 
-      amount, 
-      paymentGateway, 
-      currency || 'usd', 
+      req.user.id,
+      amount,
+      paymentGateway,
+      currency || 'usd',
       description || `Deposit via ${paymentGateway}`
-    );
-    
-    res.status(201).json(result);
+    )
+
+    res.status(201).json(result)
   } catch (error) {
-    console.error('Error in createDeposit controller:', error);
-    res.status(500).json({ error: 'Failed to create deposit request' });
+    console.error('Error in createDeposit controller:', error)
+    res.status(500).json({ error: 'Failed to create deposit request' })
   }
-};
+}
 
 /**
  * Get user deposits
@@ -45,13 +45,13 @@ export const createDeposit = async (req, res) => {
  */
 export const getUserDeposits = async (req, res) => {
   try {
-    const deposits = await depositService.getUserDeposits(req.user.id);
-    res.json(deposits);
+    const deposits = await depositService.getUserDeposits(req.user.id)
+    res.json(deposits)
   } catch (error) {
-    console.error('Error in getUserDeposits controller:', error);
-    res.status(500).json({ error: 'Failed to fetch deposits' });
+    console.error('Error in getUserDeposits controller:', error)
+    res.status(500).json({ error: 'Failed to fetch deposits' })
   }
-};
+}
 
 /**
  * Get deposit by ID
@@ -60,24 +60,24 @@ export const getUserDeposits = async (req, res) => {
  */
 export const getDepositById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const deposit = await depositService.getDepositById(id);
-    
+    const { id } = req.params
+    const deposit = await depositService.getDepositById(id)
+
     if (!deposit) {
-      return res.status(404).json({ error: 'Deposit not found' });
+      return res.status(404).json({ error: 'Deposit not found' })
     }
-    
+
     // Check if user owns this deposit
     if (deposit.userId !== req.user.id) {
-      return res.status(403).json({ error: 'Not authorized to view this deposit' });
+      return res.status(403).json({ error: 'Not authorized to view this deposit' })
     }
-    
-    res.json(deposit);
+
+    res.json(deposit)
   } catch (error) {
-    console.error('Error in getDepositById controller:', error);
-    res.status(500).json({ error: 'Failed to fetch deposit' });
+    console.error('Error in getDepositById controller:', error)
+    res.status(500).json({ error: 'Failed to fetch deposit' })
   }
-};
+}
 
 /**
  * IPN callback for NOWPayments
@@ -86,83 +86,83 @@ export const getDepositById = async (req, res) => {
  */
 export const nowpaymentsIPNCallback = async (req, res) => {
   try {
-    const { depositId, paymentId, status } = req.body;
-    
+    const { depositId, paymentId, status } = req.body
+
     if (!depositId || !paymentId || !status) {
-      return res.status(400).json({ error: 'Missing required fields' });
+      return res.status(400).json({ error: 'Missing required fields' })
     }
-    
+
     // Get deposit
-    const deposit = await depositService.getDepositById(depositId);
-    
+    const deposit = await depositService.getDepositById(depositId)
+
     if (!deposit) {
-      return res.status(404).json({ error: 'Deposit not found' });
+      return res.status(404).json({ error: 'Deposit not found' })
     }
-    
+
     // Verify IPN callback if using NOWPayments
     if (deposit.paymentGateway === 'NOWPayments') {
       // Get the NOWPayments gateway configuration
       const nowpaymentsGateway = await prisma.paymentGateway.findFirst({
-        where: { 
+        where: {
           name: 'NOWPayments',
-          isActive: true 
+          isActive: true
         }
-      });
-      
+      })
+
       // Create NOWPayments service with the gateway configuration
-      const nowpaymentsService = new NOWPaymentsService(nowpaymentsGateway);
-      
+      const nowpaymentsService = new NOWPaymentsService(nowpaymentsGateway)
+
       // Verify the callback signature
-      const isValid = nowpaymentsService.verifyIPNCallback(req.body, req.headers['x-nowpayments-sig']);
-      
+      const isValid = nowpaymentsService.verifyIPNCallback(req.body, req.headers['x-nowpayments-sig'])
+
       if (!isValid) {
-        return res.status(400).json({ error: 'Invalid IPN callback signature' });
+        return res.status(400).json({ error: 'Invalid IPN callback signature' })
       }
     }
-    
+
     // Update deposit status based on payment status
-    let newStatus = deposit.status;
-    
+    let newStatus = deposit.status
+
     // Map NOWPayments status to our deposit status
     if (deposit.paymentGateway === 'NOWPayments') {
       switch (status) {
         case 'finished':
-          newStatus = 'completed';
-          break;
+          newStatus = 'completed'
+          break
         case 'pending':
-          newStatus = 'pending_payment';
-          break;
+          newStatus = 'pending_payment'
+          break
         case 'confirming':
-          newStatus = 'confirming';
-          break;
+          newStatus = 'confirming'
+          break
         case 'confirmed':
-          newStatus = 'confirmed';
-          break;
+          newStatus = 'confirmed'
+          break
         case 'sending':
-          newStatus = 'sending';
-          break;
+          newStatus = 'sending'
+          break
         case 'partially_paid':
-          newStatus = 'partially_paid';
-          break;
+          newStatus = 'partially_paid'
+          break
         case 'failed':
-          newStatus = 'failed';
-          break;
+          newStatus = 'failed'
+          break
         default:
-          newStatus = 'pending_payment';
+          newStatus = 'pending_payment'
       }
     }
-    
+
     // Update deposit status
-    const updatedDeposit = await depositService.updateDepositStatus(depositId, newStatus);
-    
+    const updatedDeposit = await depositService.updateDepositStatus(depositId, newStatus)
+
     // If payment is completed, update user balance
     if (newStatus === 'completed') {
-      await depositService.processSuccessfulDeposit(depositId);
+      await depositService.processSuccessfulDeposit(depositId)
     }
-    
-    res.json({ success: true, deposit: updatedDeposit });
+
+    res.json({ success: true, deposit: updatedDeposit })
   } catch (error) {
-    console.error('Error in nowpaymentsIPNCallback controller:', error);
-    res.status(500).json({ error: 'Failed to process IPN callback' });
+    console.error('Error in nowpaymentsIPNCallback controller:', error)
+    res.status(500).json({ error: 'Failed to process IPN callback' })
   }
-};
+}

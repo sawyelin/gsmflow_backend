@@ -1,14 +1,14 @@
-import { Router } from 'express';
-import { verifyEmail, forgotPassword, resetPassword, resendVerification } from '../controllers/authExtraController.js';
+import { Router } from 'express'
+import { verifyEmail, forgotPassword, resetPassword, resendVerification } from '../controllers/authExtraController.js'
 
-const router = Router();
+const router = Router()
 
 // Email verification routes
-router.get('/verify-email', verifyEmail);
-router.post('/resend-verification', resendVerification);
+router.get('/verify-email', verifyEmail)
+router.post('/resend-verification', resendVerification)
 
 // Password reset routes
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', forgotPassword)
+router.post('/reset-password', resetPassword)
 
-export default router;
+export default router

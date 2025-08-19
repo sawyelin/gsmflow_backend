@@ -1,27 +1,27 @@
-import express from 'express';
-import { authRequired } from '../middleware/auth.js';
-import { 
-  getTwoFactorStatus, 
-  enableTwoFactor, 
+import express from 'express'
+import { authRequired } from '../middleware/auth.js'
+import {
+  getTwoFactorStatus,
+  enableTwoFactor,
   disableTwoFactor,
   generateTwoFactorSecret
-} from '../controllers/twoFactorController.js';
+} from '../controllers/twoFactorController.js'
 
-const router = express.Router();
+const router = express.Router()
 
 // All routes require authentication
-router.use(authRequired);
+router.use(authRequired)
 
 // Get two-factor status
-router.get('/status', getTwoFactorStatus);
+router.get('/status', getTwoFactorStatus)
 
 // Enable two-factor authentication
-router.post('/enable', enableTwoFactor);
+router.post('/enable', enableTwoFactor)
 
 // Disable two-factor authentication
-router.post('/disable', disableTwoFactor);
+router.post('/disable', disableTwoFactor)
 
 // Generate secret for authenticator app
-router.post('/generate-secret', generateTwoFactorSecret);
+router.post('/generate-secret', generateTwoFactorSecret)
 
-export default router;
+export default router

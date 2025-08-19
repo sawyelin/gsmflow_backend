@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { 
+import { Router } from 'express'
+import {
   getApiConfigs,
   getApiConfigById,
   createApiConfig,
@@ -25,81 +25,81 @@ import {
   toggleUserActive,
   // orders
   getAllOrders,
-  updateOrderStatus,
-} from '../controllers/dhruAdminController.js';
+  updateOrderStatus
+} from '../controllers/dhruAdminController.js'
 
-import { 
+import {
   getSiteSettings,
   updateSiteSettings
-} from '../controllers/siteSettingsController.js';
+} from '../controllers/siteSettingsController.js'
 
-import { 
+import {
   getAssets,
   createAsset,
   updateAsset,
   deleteAsset
-} from '../controllers/assetsController.js';
+} from '../controllers/assetsController.js'
 
-import { authRequired } from '../middleware/auth.js';
-import { me as adminMe } from '../controllers/authController.js';
+import { authRequired } from '../middleware/auth.js'
+import { me as adminMe } from '../controllers/authController.js'
 
-const router = Router();
+const router = Router()
 
 // Apply authentication middleware to all routes
 // Note: Some routes may need admin-specific middleware in the future
-router.use(authRequired);
+router.use(authRequired)
 
 // Admin me endpoint
-router.get('/me', adminMe);
+router.get('/me', adminMe)
 
 // DHRU API Configuration routes
-router.get('/api-configs', getApiConfigs);
-router.get('/api-configs/:id', getApiConfigById);
-router.post('/api-configs', createApiConfig);
-router.put('/api-configs/:id', updateApiConfig);
-router.delete('/api-configs/:id', deleteApiConfig);
-router.post('/api-configs/:id/default', setDefaultApiConfig);
+router.get('/api-configs', getApiConfigs)
+router.get('/api-configs/:id', getApiConfigById)
+router.post('/api-configs', createApiConfig)
+router.put('/api-configs/:id', updateApiConfig)
+router.delete('/api-configs/:id', deleteApiConfig)
+router.post('/api-configs/:id/default', setDefaultApiConfig)
 
 // Test DHRU API connection
-router.post('/test-connection', testApiConnection);
+router.post('/test-connection', testApiConnection)
 
 // Service synchronization routes (admin only)
-router.post('/api-configs/:apiConfigId/sync', syncServices);
+router.post('/api-configs/:apiConfigId/sync', syncServices)
 
 // Service retrieval routes
-router.get('/api-configs/:apiConfigId/services', getServicesByApiConfig);
-router.get('/api-configs/:apiConfigId/services/type/:type', getServicesByType);
-router.get('/api-configs/:apiConfigId/services/group/:groupId', getServicesByGroup);
-router.get('/api-configs/:apiConfigId/services/active', getActiveServices);
-router.get('/api-configs/:apiConfigId/service-stats', getServiceStats);
+router.get('/api-configs/:apiConfigId/services', getServicesByApiConfig)
+router.get('/api-configs/:apiConfigId/services/type/:type', getServicesByType)
+router.get('/api-configs/:apiConfigId/services/group/:groupId', getServicesByGroup)
+router.get('/api-configs/:apiConfigId/services/active', getActiveServices)
+router.get('/api-configs/:apiConfigId/service-stats', getServiceStats)
 
 // Dashboard stats
-router.get('/dashboard/stats', getDashboardStats);
+router.get('/dashboard/stats', getDashboardStats)
 
 // Sync logs
-router.get('/sync-logs', listSyncLogs);
-router.get('/sync-logs/:id', getSyncLog);
+router.get('/sync-logs', listSyncLogs)
+router.get('/sync-logs/:id', getSyncLog)
 
 // Users management (admin only)
-router.get('/users', listUsers);
-router.put('/users/:id', updateUser);
-router.delete('/users/:id', deleteUser);
-router.post('/users/:id/role', setUserRole);
-router.post('/users/:id/balance', adjustUserBalance);
-router.post('/users/:id/toggle-active', toggleUserActive);
+router.get('/users', listUsers)
+router.put('/users/:id', updateUser)
+router.delete('/users/:id', deleteUser)
+router.post('/users/:id/role', setUserRole)
+router.post('/users/:id/balance', adjustUserBalance)
+router.post('/users/:id/toggle-active', toggleUserActive)
 
 // Orders routes (admin only)
-router.get('/orders', getAllOrders);
-router.put('/orders/:id/status', updateOrderStatus);
+router.get('/orders', getAllOrders)
+router.put('/orders/:id/status', updateOrderStatus)
 
 // Site settings routes (admin only)
-router.get('/site-settings', getSiteSettings);
-router.put('/site-settings', updateSiteSettings);
+router.get('/site-settings', getSiteSettings)
+router.put('/site-settings', updateSiteSettings)
 
 // Asset management routes (admin only)
-router.get('/assets', getAssets);
-router.post('/assets', createAsset);
-router.put('/assets/:id', updateAsset);
-router.delete('/assets/:id', deleteAsset);
+router.get('/assets', getAssets)
+router.post('/assets', createAsset)
+router.put('/assets/:id', updateAsset)
+router.delete('/assets/:id', deleteAsset)
 
-export default router;
+export default router
