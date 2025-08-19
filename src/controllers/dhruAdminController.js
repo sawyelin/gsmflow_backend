@@ -123,7 +123,7 @@ export const getDashboardStats = async (req, res) => {
     } else {
       // Aggregate across all API configs
       const configs = await prisma.dhruApiConfig.findMany();
-      if (configs && configs.length) {
+      if (configs?.length) {
         const allRows = configs.flatMap(cfg => dhruAdminService.buildServiceRowsFromConfig(cfg));
         const byType = allRows.reduce((acc, s) => { acc[s.type] = (acc[s.type] || 0) + 1; return acc; }, {});
         // Use the latest syncedAt among configs as overall
