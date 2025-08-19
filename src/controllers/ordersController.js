@@ -178,7 +178,7 @@ export const createOrder = async (req, res) => {
     const { price, imei, deviceModel = '', serviceId, serviceName, serviceType, customFields, quantity, dhruParams } = req.body;
     if (typeof price !== 'number' || price < 0) return res.status(400).json({ error: 'Invalid price' });
     const order = await prisma.$transaction(async (tx) => {
-      const [user] = await tx.$queryRawUnsafe(`SELECT id, balance FROM "users" WHERE id = $1 FOR UPDATE`, req.user.id);
+      const [user] = await tx.$queryRawUnsafe('SELECT id, balance FROM "users" WHERE id = $1 FOR UPDATE', req.user.id);
       if (!user) throw new Error('User not found');
       if (price > 0 && Number(user.balance) < price) throw new Error('Insufficient balance');
       if (price > 0) {
@@ -388,65 +388,65 @@ export const checkOrderStatus = async (req, res) => {
       
       // Map DHRU status codes to our status
       // Based on DHRU documentation and user feedback:
-      // STATUS: '0' = Pending
-      // STATUS: '1' = In Progress
-      // STATUS: '2' = Waiting for Payment
-      // STATUS: '3' = Cancelled
-      // STATUS: '4' = Completed
-      // STATUS: '5' = Partially Completed
-      // STATUS: '6' = Refunded
-      // STATUS: '7' = Failed
-      switch (dhruOrderStatus) {
-        case '4': // Completed
-          newStatus = 'COMPLETED';
-          break;
-        case '0': // Pending
-        case '1': // In Progress
-        case '2': // Waiting for Payment
-          newStatus = 'PROCESSING';
-          break;
-        case '3': // Cancelled
-        case '6': // Refunded
-          newStatus = 'CANCELLED';
-          break;
-        case '5': // Partially Completed
-        case '7': // Failed
-          newStatus = 'FAILED';
-          break;
-        default:
-          newStatus = 'PROCESSING';
-      }
-    }
-    
-    // Only update the database if the status has actually changed to a final state (COMPLETED, FAILED, CANCELLED)
-    // or if this is the first time we're getting the DHRU response
-    const shouldUpdateDatabase =
-      (newStatus === 'COMPLETED' || newStatus === 'FAILED' || newStatus === 'CANCELLED') ||
-      (!order.dhruResponse?.orderDetails && dhruOrderDetails);
-    
-    if (shouldUpdateDatabase) {
-      const updated = await prisma.order.update({
-        where: { id: order.id },
-        data: {
-          status: newStatus,
-          dhruResponse: { ...order.dhruResponse, orderDetails: dhruOrderDetails },
-          completedAt: newStatus === 'COMPLETED' ? new Date() : order.completedAt
-        }
-      });
-      
-      res.json(updated);
-    } else {
-      // Return the order with updated status but don't persist to database
-      res.json({
-        ...order,
-        status: newStatus,
-        dhruResponse: { ...order.dhruResponse, orderDetails: dhruOrderDetails }
-      });
-    }
-  } catch (e) {
-    console.error('Status Check Error:', e);
-    res.status(502).json({ error: 'Status check error: ' + e.message });
-  }
-};
-
-
+      // STATUS: '0' = Pending 
+      // STATUS: '1' = In Progress 
+      // STATUS: '2' = Waiting for Payment 
+      // STATUS: '3' = Cancelled 
+      // STATUS: '4' = Completed 
+      // STATUS: '5' = Partially Completed 
+      // STATUS: '6' = Refunded 
+      // STATUS: '7' = Failed 
+      switch (dhruOrderStatus) { 
+        case '4': // Completed 
+          newStatus = 'COMPLETED'; 
+          break; 
+        case '0': // Pending 
+        case '1': // In Progress 
+        case '2': // Waiting for Payment 
+          newStatus = 'PROCESSING'; 
+          break; 
+        case '3': // Cancelled 
+        case '6': // Refunded 
+          newStatus = 'CANCELLED'; 
+          break; 
+        case '5': // Partially Completed 
+        case '7': // Failed 
+          newStatus = 'FAILED'; 
+          break; 
+        default: 
+          newStatus = 'PROCESSING'; 
+      } 
+    } 
+     
+    // Only update the database if the status has actually changed to a final state (COMPLETED, FAILED, CANCELLED) 
+    // or if this is the first time we're getting the DHRU response 
+    const shouldUpdateDatabase = 
+      (newStatus === 'COMPLETED' || newStatus === 'FAILED' || newStatus === 'CANCELLED') || 
+      (!order.dhruResponse?.orderDetails && dhruOrderDetails); 
+     
+    if (shouldUpdateDatabase) { 
+      const updated = await prisma.order.update({ 
+        where: { id: order.id }, 
+        data: { 
+          status: newStatus, 
+          dhruResponse: { ...order.dhruResponse, orderDetails: dhruOrderDetails }, 
+          completedAt: newStatus === 'COMPLETED' ? new Date() : order.completedAt 
+        } 
+      }); 
+       
+      res.json(updated); 
+    } else { 
+      // Return the order with updated status but don't persist to database 
+      res.json({ 
+        ...order, 
+        status: newStatus, 
+        dhruResponse: { ...order.dhruResponse, orderDetails: dhruOrderDetails } 
+      }); 
+    } 
+  } catch (e) { 
+    console.error('Status Check Error:', e); 
+    res.status(502).json({ error: 'Status check error: ' + e.message }); 
+  } 
+}; 
+ 
+ 
